@@ -1,0 +1,33 @@
+//here we are assiging the pin numbers to variables.
+//the output of the gas sensor is connected to pin 2 or the arduino(as on the image)
+//the speaker (buzzer) is connected to pin 8 as seen on the image
+const int gasDigitalPin = 2;  
+const int buzzerPin = 8;
+
+
+//here we are initializing the pins being declared at the top
+//since we are receiving data from the gas sensor, it is labeled as an input and 
+//since we are sending current to the speaker to play a sound, it is labeled as output
+//serial.begin initializes the sensor
+void setup() {
+  pinMode(gasDigitalPin, INPUT);
+  pinMode(buzzerPin, OUTPUT);
+  Serial.begin(9600);
+}
+
+void loop() {
+//here we are reading data coming in from the sensor with the help of degitalRead
+  int gasDetected = digitalRead(gasDigitalPin); 
+
+
+//if the data coming in is HIGH(has a value of 1 meaning current is flowing) meaning it has detected smoke 
+//we trigger the speaker pin (buzzerPin) to make the speaker play a sound of 1000Hz(you can increase the frequency if you want)
+  if (gasDetected == HIGH) {  
+    tone(buzzerPin, 1000);  
+  } else {
+//else if no smoke is detected, we force the speaker to remain quiet
+
+    noTone(buzzerPin);  
+  }
+  delay(200);
+}

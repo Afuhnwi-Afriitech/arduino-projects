@@ -1,0 +1,87 @@
+// Define pin connections for the ultrasonic distance sensor and output devices
+const int trigPin = 7;      // Trigger pin of the ultrasonic sensor: sends the sound pulse
+const int echoPin = 6;      // Echo pin of the ultrasonic sensor: receives the reflected pulse
+const int buzzerPin = 8;    // Buzzer pin: used to sound an alarm when an object is detected
+const int ledPin = 13;      // Built-in LED pin: used for visual indication of detection
+
+void setup() {
+  // The trigger pin sends an ultrasonic signal, so it's set as OUTPUT
+  pinMode(trigPin, OUTPUT);     
+  
+  // The echo pin receives the signal coming back, so it's set as INPUT
+  pinMode(echoPin, INPUT);      
+
+  // The buzzer and LED are output devices we want to control (turn ON or OFF)
+  pinMode(buzzerPin, OUTPUT);   
+  pinMode(ledPin, OUTPUT);      
+
+  // Start the serial communication so we can view distance readings on a computer
+  Serial.begin(9600);           
+}
+
+void loop() {
+  /*
+   * To measure distance using an ultrasonic sensor (like the HC-SR04), 
+   * we need to send a HIGH signal to the trigPin for at least 10 microseconds.
+   * This triggers the sensor to emit an ultrasonic sound wave.
+   */
+
+  digitalWrite(trigPin, LOW);      // Start by making sure the trigger pin is LOW
+  delayMicroseconds(2);            // Short delay for sensor stability
+  
+  digitalWrite(trigPin, HIGH);     // Send a HIGH pulse to start the ultrasonic burst
+  delayMicroseconds(10);           // Pulse must be at least 10 microseconds
+  digitalWrite(trigPin, LOW);      // End the pulse to let the sensor emit the sound wave
+
+  /*
+   * Now the sensor sends out an ultrasonic sound wave.
+   * It will reflect off of any nearby object and return to the sensor.
+   * The echoPin goes HIGH when the pulse is sent and LOW when it is received.
+   * The pulseIn() function measures how long the echoPin stayed HIGH, 
+   * which tells us how long the sound took to travel to the object and back.
+   */
+
+  long duration = pulseIn(echoPin, HIGH);  // Time in microseconds that the echo pin stayed HIGH
+
+  /*
+   * The speed of sound is roughly 0.034 cm per microsecond.
+   * To get the distance, we multiply the duration by 0.034.
+   * Since the time is for both to and from the object, we divide the result by 2.
+   */
+  float distance = duration * 0.034 / 2;   // Calculate the distance in centimeters
+
+  /*
+   * If an object is detected within 400 cm, we trigger an alert:
+   * - Turn on an LED for visual warning
+   * - Play an alarm sound using the buzzer
+   */
+  if (distance < 400) {
+    digitalWrite(ledPin, HIGH);  // Turn on LED
+    alarmSound();                // Play alarm sound pattern
+  } else {
+    digitalWrite(ledPin, LOW);   // Turn off LED
+    noTone(buzzerPin);           // Stop any buzzer sound
+  }
+
+  // Display the measured distance in the Serial Monitor
+  Serial.print("Distance: ");
+  Serial.print(distance);
+  Serial.println(" cm");
+
+  delay(300);  // Short delay before taking the next reading
+}
+
+/*
+ * This function creates a simple alarm pattern using varying tones.
+ * It makes the buzzer beep at three different frequencies with delays between them.
+ * This helps to draw attention when an object is detected.
+ */
+void alarmSound() {
+  tone(buzzerPin, 1000, 200);   // Play 1000 Hz tone for 200ms
+  delay(250);                   // Wait before next tone
+  tone(buzzerPin, 1200, 200);   // Play 1200 Hz tone for 200ms
+  delay(250);                   // Wait before next tone
+  tone(buzzerPin, 1500, 200);   // Play 1500 Hz tone for 200ms
+  delay(250);                   // Wait before ending sound
+  noTone(buzzerPin);            // Stop the buzzer sound
+}
